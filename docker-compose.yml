@@ -33,7 +33,7 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_API_URL: http://localhost:4000
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:4000}
     restart: unless-stopped
     ports:
       - "3000:80"

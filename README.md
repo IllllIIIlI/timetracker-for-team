@@ -49,6 +49,17 @@ The other defaults work out of the box for local Docker use.
 docker compose up --build
 ```
 
+### Running on another machine (e.g. a Raspberry Pi on your LAN)
+
+If you're accessing the app from other devices, `localhost` won't resolve to the host
+machine. Set `FRONTEND_URL` and `GOOGLE_CALLBACK_URL` in `backend/.env` to the host's LAN
+IP or hostname, add the matching redirect URI in Google Cloud Console, and pass the same
+address as `VITE_API_URL` when building the frontend:
+
+```bash
+VITE_API_URL=http://<host-ip-or-hostname>:4000 docker compose up --build
+```
+
 This starts three containers:
 
 | Service  | URL                      |
