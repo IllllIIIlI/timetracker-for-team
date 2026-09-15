@@ -92,6 +92,31 @@ npm install
 npm run dev
 ```
 
+## Testing
+
+Both projects use [Vitest](https://vitest.dev).
+
+```bash
+# backend — integration tests hit a real Postgres, so the db container
+# must be running first
+docker compose up -d db
+cd backend && npm test
+
+# frontend — unit tests, no services needed
+cd frontend && npm test
+```
+
+**In VS Code:** install the recommended **Vitest** extension (VS Code will prompt you, or
+install `vitest.explorer` manually) and both suites show up in the Testing sidebar with
+per-test run/debug buttons — no extra config needed once `npm install` has been run in
+each folder.
+
+Backend tests create their own throw-away users/projects (random emails, never real data)
+and delete them afterward, so they're safe to run against your local dev database.
+`tests/security.test.ts` specifically covers cross-user access control — one project
+member can never read, adjust, or delete another member's time, with or without a valid
+key for their own account.
+
 ## Project structure
 
 ```
