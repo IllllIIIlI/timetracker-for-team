@@ -15,6 +15,8 @@ projects, and see a leaderboard of who has logged the most time.
   invite is held and applied automatically the first time they log in with that email
 - Leaderboard scoped to one project at a time, ranked by total tracked time — today, this
   week, this month, or all time — showing only that project's members
+- Personal API key for scripting: start/stop a timer or nudge your own tracked time up/down
+  from curl, a shortcut, or a physical button — no browser needed
 
 ## 1. Create Google OAuth credentials
 
@@ -105,6 +107,8 @@ docker-compose.yml   Runs db + backend + frontend together
 | GET    | /api/auth/google             | Start Google OAuth login          |
 | GET    | /api/auth/me                 | Current user                      |
 | POST   | /api/auth/logout             | Clear session                     |
+| POST   | /api/auth/api-key             | Generate (or regenerate) your personal API key |
+| DELETE | /api/auth/api-key             | Revoke your API key               |
 | GET    | /api/projects                | Projects you're a member of       |
 | POST   | /api/projects                | Create a project (you become owner)|
 | DELETE | /api/projects/:id            | Delete a project (owner only)     |
@@ -116,5 +120,31 @@ docker-compose.yml   Runs db + backend + frontend together
 | POST   | /api/time-entries/start      | Start a timer                     |
 | POST   | /api/time-entries/stop       | Stop the running timer            |
 | POST   | /api/time-entries            | Log a manual entry                |
+| POST   | /api/time-entries/adjust     | Add/remove time without a timer (own entries only) |
 | DELETE | /api/time-entries/:id        | Delete an entry                   |
 | GET    | /api/leaderboard?projectId=&period= | Ranked totals for one project's members (`today`/`week`/`month`/`all`) |
+
+## Calling the API without a browser
+
+Every endpoint above accepts either the browser session cookie or a personal API key sent
+as `Authorization: Bearer <key>`. Generate a key from the "API access" panel at the bottom
+of the Dashboard (or `POST /api/auth/api-key` using your browser session once), then:
+
+```bash
+# Start a timer
+curl -X POST http://localhost:4000/api/time-entries/start \
+  -H "Authorization: Bearer <key>" -H "Content-Type: application/json" \
+  -d '{"projectId":"<project-id>"}'
+
+# Stop it
+curl -X POST http://localhost:4000/api/time-entries/stop \
+  -H "Authorization: Bearer <key>"
+
+# Add or remove time without running a timer (e.g. -5 min)
+curl -X POST http://localhost:4000/api/time-entries/adjust \
+  -H "Authorization: Bearer <key>" -H "Content-Type: application/json" \
+  -d '{"projectId":"<project-id>","deltaSeconds":-300}'
+```
+
+`adjust` (and every other write) always applies to the calling user's own time — there's
+no way to pass a different user, so a key can never be used to edit someone else's hours.

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import passport from "../config/passport";
 import { requireAuth } from "../middleware/auth";
 import { prisma } from "../lib/prisma";
+import { generateApiKey, hashApiKey } from "../lib/apiKey";
 
 const router = Router();
 
@@ -52,7 +53,28 @@ router.get("/me", requireAuth, async (req, res) => {
     email: user.email,
     name: user.name,
     avatarUrl: user.avatarUrl,
+    hasApiKey: user.apiKeyHash != null,
   });
+});
+
+// Generates a new personal API key, replacing any previous one. The raw key
+// is only ever returned here — only its hash is stored — so it must be
+// saved by the caller immediately.
+router.post("/api-key", requireAuth, async (req, res) => {
+  const rawKey = generateApiKey();
+  await prisma.user.update({
+    where: { id: req.auth!.userId },
+    data: { apiKeyHash: hashApiKey(rawKey) },
+  });
+  res.status(201).json({ apiKey: rawKey });
+});
+
+router.delete("/api-key", requireAuth, async (req, res) => {
+  await prisma.user.update({
+    where: { id: req.auth!.userId },
+    data: { apiKeyHash: null },
+  });
+  res.status(204).end();
 });
 
 export default router;

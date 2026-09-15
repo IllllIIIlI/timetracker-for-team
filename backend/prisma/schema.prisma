@@ -15,6 +15,11 @@ model User {
   avatarUrl  String?
   createdAt  DateTime @default(now())
 
+  // SHA-256 hash of a personal API token, for calling the API (e.g. start/stop
+  // a timer) without a browser session. The raw token is shown to the user
+  // only once, when generated.
+  apiKeyHash String? @unique
+
   ownedProjects Project[]
   memberships   ProjectMember[]
   timeEntries   TimeEntry[]

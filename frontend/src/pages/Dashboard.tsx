@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api, ActiveEntry, Project, TimeEntry } from "../api";
 import { formatDuration } from "../format";
 import ProjectMembers from "../components/ProjectMembers";
+import ApiAccess from "../components/ApiAccess";
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -91,6 +92,15 @@ export default function Dashboard() {
     await api.projects.remove(id);
     setProjects((prev) => prev.filter((p) => p.id !== id));
     if (selectedProjectId === id) setSelectedProjectId("");
+  };
+
+  const adjustTime = async (projectId: string, deltaSeconds: number) => {
+    try {
+      const entry = await api.timeEntries.adjust(projectId, deltaSeconds);
+      setEntries((prev) => [entry, ...prev]);
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
 
   const elapsedSeconds = active
@@ -190,6 +200,22 @@ export default function Dashboard() {
                   {p.name}
                 </span>
                 <span className="flex items-center gap-3">
+                  <span className="flex items-center gap-1 text-slate-400">
+                    <button
+                      onClick={() => adjustTime(p.id, -300)}
+                      title="Remove 5 minutes from my time on this project"
+                      className="hover:text-red-600 px-1"
+                    >
+                      −5m
+                    </button>
+                    <button
+                      onClick={() => adjustTime(p.id, 300)}
+                      title="Add 5 minutes to my time on this project"
+                      className="hover:text-indigo-600 px-1"
+                    >
+                      +5m
+                    </button>
+                  </span>
                   <button
                     onClick={() =>
                       setExpandedProjectId(expandedProjectId === p.id ? null : p.id)
@@ -239,6 +265,8 @@ export default function Dashboard() {
           )}
         </ul>
       </section>
+
+      <ApiAccess />
     </div>
   );
 }

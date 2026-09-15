@@ -119,6 +119,47 @@ router.post("/", async (req, res) => {
   res.status(201).json(entry);
 });
 
+// Add or remove time from a project's total without running a timer, e.g.
+// "+5 min" / "-5 min" corrections. Always recorded under the caller's own
+// userId — there's no way to pass a different target user, so this can only
+// ever affect the caller's own logged time on the project.
+router.post("/adjust", async (req, res) => {
+  const { projectId, deltaSeconds, description } = req.body as {
+    projectId?: string;
+    deltaSeconds?: number;
+    description?: string;
+  };
+
+  if (!projectId || typeof deltaSeconds !== "number" || !Number.isFinite(deltaSeconds)) {
+    return res.status(400).json({ error: "projectId and a non-zero deltaSeconds are required" });
+  }
+  const delta = Math.round(deltaSeconds);
+  if (delta === 0) {
+    return res.status(400).json({ error: "deltaSeconds must not be zero" });
+  }
+
+  const membership = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId, userId: req.auth!.userId } },
+  });
+  if (!membership) {
+    return res.status(404).json({ error: "Project not found" });
+  }
+
+  const now = new Date();
+  const entry = await prisma.timeEntry.create({
+    data: {
+      userId: req.auth!.userId,
+      projectId,
+      description: description?.trim() || `Manual adjustment (${delta > 0 ? "+" : ""}${delta}s)`,
+      startTime: now,
+      endTime: now,
+      durationSeconds: delta,
+    },
+    include: { project: true },
+  });
+  res.status(201).json(entry);
+});
+
 router.delete("/:id", async (req, res) => {
   const entry = await prisma.timeEntry.findUnique({ where: { id: req.params.id } });
   if (!entry || entry.userId !== req.auth!.userId) {

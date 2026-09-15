@@ -5,6 +5,7 @@ export interface User {
   email: string;
   name: string;
   avatarUrl?: string | null;
+  hasApiKey?: boolean;
 }
 
 export interface Project {
@@ -75,6 +76,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 export const api = {
   me: () => request<User>("/api/auth/me"),
   logout: () => request<void>("/api/auth/logout", { method: "POST" }),
+  generateApiKey: () => request<{ apiKey: string }>("/api/auth/api-key", { method: "POST" }),
+  revokeApiKey: () => request<void>("/api/auth/api-key", { method: "DELETE" }),
 
   projects: {
     list: () => request<Project[]>("/api/projects"),
@@ -106,6 +109,11 @@ export const api = {
         body: JSON.stringify({ projectId, startTime, endTime, description }),
       }),
     remove: (id: string) => request<void>(`/api/time-entries/${id}`, { method: "DELETE" }),
+    adjust: (projectId: string, deltaSeconds: number, description?: string) =>
+      request<TimeEntry>("/api/time-entries/adjust", {
+        method: "POST",
+        body: JSON.stringify({ projectId, deltaSeconds, description }),
+      }),
   },
 
   leaderboard: (projectId: string, period: string) =>
