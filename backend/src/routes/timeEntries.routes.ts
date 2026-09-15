@@ -29,8 +29,10 @@ router.post("/start", async (req, res) => {
   const { projectId, description } = req.body as { projectId?: string; description?: string };
   if (!projectId) return res.status(400).json({ error: "projectId is required" });
 
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!project || project.ownerId !== req.auth!.userId) {
+  const membership = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId, userId: req.auth!.userId } },
+  });
+  if (!membership) {
     return res.status(404).json({ error: "Project not found" });
   }
 
@@ -86,8 +88,10 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ error: "projectId, startTime and endTime are required" });
   }
 
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
-  if (!project || project.ownerId !== req.auth!.userId) {
+  const membership = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId, userId: req.auth!.userId } },
+  });
+  if (!membership) {
     return res.status(404).json({ error: "Project not found" });
   }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, Project, TimeEntry } from "../api";
 import { formatDuration } from "../format";
+import ProjectMembers from "../components/ProjectMembers";
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -11,6 +12,7 @@ export default function Dashboard() {
   const [description, setDescription] = useState("");
   const [now, setNow] = useState(Date.now());
   const [error, setError] = useState<string | null>(null);
+  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
 
   const loadAll = async () => {
     const [p, e, a] = await Promise.all([
@@ -160,20 +162,35 @@ export default function Dashboard() {
         </div>
         <ul className="divide-y divide-slate-100">
           {projects.map((p) => (
-            <li key={p.id} className="py-2 flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2">
-                <span
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: p.color }}
-                />
-                {p.name}
-              </span>
-              <button
-                onClick={() => removeProject(p.id)}
-                className="text-slate-400 hover:text-red-600"
-              >
-                Remove
-              </button>
+            <li key={p.id} className="py-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: p.color }}
+                  />
+                  {p.name}
+                </span>
+                <span className="flex items-center gap-3">
+                  <button
+                    onClick={() =>
+                      setExpandedProjectId(expandedProjectId === p.id ? null : p.id)
+                    }
+                    className="text-slate-400 hover:text-indigo-600"
+                  >
+                    {expandedProjectId === p.id ? "Hide members" : "Members"}
+                  </button>
+                  {p.role === "OWNER" && (
+                    <button
+                      onClick={() => removeProject(p.id)}
+                      className="text-slate-400 hover:text-red-600"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </span>
+              </div>
+              {expandedProjectId === p.id && <ProjectMembers projectId={p.id} />}
             </li>
           ))}
           {projects.length === 0 && (

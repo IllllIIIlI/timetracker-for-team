@@ -11,7 +11,10 @@ projects, and see a leaderboard of who has logged the most time.
 
 - Sign in with your Google account (no passwords to manage)
 - Create projects, start/stop a timer, or log time manually
-- Leaderboard ranked by total tracked time — today, this week, this month, or all time
+- Invite teammates to a project by their Gmail address — if they haven't signed in yet, the
+  invite is held and applied automatically the first time they log in with that email
+- Leaderboard scoped to one project at a time, ranked by total tracked time — today, this
+  week, this month, or all time — showing only that project's members
 
 ## 1. Create Google OAuth credentials
 
@@ -91,13 +94,16 @@ docker-compose.yml   Runs db + backend + frontend together
 | GET    | /api/auth/google             | Start Google OAuth login          |
 | GET    | /api/auth/me                 | Current user                      |
 | POST   | /api/auth/logout             | Clear session                     |
-| GET    | /api/projects                | List your projects                |
-| POST   | /api/projects                | Create a project                  |
-| DELETE | /api/projects/:id            | Delete a project                  |
+| GET    | /api/projects                | Projects you're a member of       |
+| POST   | /api/projects                | Create a project (you become owner)|
+| DELETE | /api/projects/:id            | Delete a project (owner only)     |
+| GET    | /api/projects/:id/members    | List members + pending invites    |
+| POST   | /api/projects/:id/invite     | Invite a teammate by Gmail/email  |
+| DELETE | /api/projects/:id/members/:userId | Remove a member, or leave    |
 | GET    | /api/time-entries            | Recent time entries                |
 | GET    | /api/time-entries/active     | Currently running timer, if any   |
 | POST   | /api/time-entries/start      | Start a timer                     |
 | POST   | /api/time-entries/stop       | Stop the running timer            |
 | POST   | /api/time-entries            | Log a manual entry                |
 | DELETE | /api/time-entries/:id        | Delete an entry                   |
-| GET    | /api/leaderboard?period=     | Ranked totals (`today`/`week`/`month`/`all`) |
+| GET    | /api/leaderboard?projectId=&period= | Ranked totals for one project's members (`today`/`week`/`month`/`all`) |

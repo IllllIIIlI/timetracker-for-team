@@ -28,32 +28,42 @@ function periodStart(period: string): Date | undefined {
   }
 }
 
+// Leaderboard for a single project, scoped to that project's members only.
 router.get("/", async (req, res) => {
+  const projectId = String(req.query.projectId || "");
+  if (!projectId) return res.status(400).json({ error: "projectId is required" });
+
+  const membership = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId, userId: req.auth!.userId } },
+  });
+  if (!membership) return res.status(404).json({ error: "Project not found" });
+
   const period = String(req.query.period || "all");
   const since = periodStart(period);
 
-  const grouped = await prisma.timeEntry.groupBy({
-    by: ["userId"],
-    where: {
-      durationSeconds: { not: null },
-      ...(since ? { startTime: { gte: since } } : {}),
-    },
-    _sum: { durationSeconds: true },
-  });
+  const [grouped, members] = await Promise.all([
+    prisma.timeEntry.groupBy({
+      by: ["userId"],
+      where: {
+        projectId,
+        durationSeconds: { not: null },
+        ...(since ? { startTime: { gte: since } } : {}),
+      },
+      _sum: { durationSeconds: true },
+    }),
+    prisma.projectMember.findMany({
+      where: { projectId },
+      include: { user: { select: { id: true, name: true, avatarUrl: true } } },
+    }),
+  ]);
 
-  const userIds = grouped.map((g) => g.userId);
-  const users = await prisma.user.findMany({
-    where: { id: { in: userIds } },
-    select: { id: true, name: true, avatarUrl: true },
-  });
-  const usersById = new Map(users.map((u) => [u.id, u]));
+  const totalsByUserId = new Map(grouped.map((g) => [g.userId, g._sum.durationSeconds || 0]));
 
-  const leaderboard = grouped
-    .map((g) => ({
-      user: usersById.get(g.userId),
-      totalSeconds: g._sum.durationSeconds || 0,
+  const leaderboard = members
+    .map((m) => ({
+      user: { id: m.user.id, name: m.user.name, avatarUrl: m.user.avatarUrl },
+      totalSeconds: totalsByUserId.get(m.userId) || 0,
     }))
-    .filter((row) => row.user)
     .sort((a, b) => b.totalSeconds - a.totalSeconds);
 
   res.json(leaderboard);

@@ -30,6 +30,21 @@ passport.use(
           },
         });
 
+        // Turn any pending invites addressed to this email into real memberships.
+        const invites = await prisma.projectInvite.findMany({ where: { email } });
+        if (invites.length > 0) {
+          await prisma.$transaction([
+            ...invites.map((invite) =>
+              prisma.projectMember.upsert({
+                where: { projectId_userId: { projectId: invite.projectId, userId: user.id } },
+                update: {},
+                create: { projectId: invite.projectId, userId: user.id, role: "MEMBER" },
+              })
+            ),
+            prisma.projectInvite.deleteMany({ where: { email } }),
+          ]);
+        }
+
         return done(null, user);
       } catch (err) {
         return done(err as Error);

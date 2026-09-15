@@ -12,6 +12,20 @@ export interface Project {
   name: string;
   color: string;
   createdAt: string;
+  role: "OWNER" | "MEMBER";
+}
+
+export interface ProjectMemberInfo {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string | null;
+  role: "OWNER" | "MEMBER";
+}
+
+export interface ProjectMembers {
+  members: ProjectMemberInfo[];
+  pendingInvites: string[];
 }
 
 export interface TimeEntry {
@@ -62,6 +76,14 @@ export const api = {
     create: (name: string, color?: string) =>
       request<Project>("/api/projects", { method: "POST", body: JSON.stringify({ name, color }) }),
     remove: (id: string) => request<void>(`/api/projects/${id}`, { method: "DELETE" }),
+    members: (projectId: string) => request<ProjectMembers>(`/api/projects/${projectId}/members`),
+    invite: (projectId: string, email: string) =>
+      request<{ status: "added" | "pending" }>(`/api/projects/${projectId}/invite`, {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      }),
+    removeMember: (projectId: string, userId: string) =>
+      request<void>(`/api/projects/${projectId}/members/${userId}`, { method: "DELETE" }),
   },
 
   timeEntries: {
@@ -81,7 +103,8 @@ export const api = {
     remove: (id: string) => request<void>(`/api/time-entries/${id}`, { method: "DELETE" }),
   },
 
-  leaderboard: (period: string) => request<LeaderboardRow[]>(`/api/leaderboard?period=${period}`),
+  leaderboard: (projectId: string, period: string) =>
+    request<LeaderboardRow[]>(`/api/leaderboard?projectId=${projectId}&period=${period}`),
 };
 
 export { ApiError };
