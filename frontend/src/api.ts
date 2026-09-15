@@ -37,6 +37,11 @@ export interface TimeEntry {
   project: Project;
 }
 
+export interface ActiveEntry {
+  entry: TimeEntry | null;
+  serverNow: string;
+}
+
 export interface LeaderboardRow {
   user: { id: string; name: string; avatarUrl?: string | null };
   totalSeconds: number;
@@ -88,9 +93,9 @@ export const api = {
 
   timeEntries: {
     list: () => request<TimeEntry[]>("/api/time-entries"),
-    active: () => request<TimeEntry | null>("/api/time-entries/active"),
+    active: () => request<ActiveEntry>("/api/time-entries/active"),
     start: (projectId: string, description?: string) =>
-      request<TimeEntry>("/api/time-entries/start", {
+      request<ActiveEntry>("/api/time-entries/start", {
         method: "POST",
         body: JSON.stringify({ projectId, description }),
       }),

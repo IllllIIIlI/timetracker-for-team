@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api, Project, TimeEntry } from "../api";
+import { api, ActiveEntry, Project, TimeEntry } from "../api";
 import { formatDuration } from "../format";
 import ProjectMembers from "../components/ProjectMembers";
 
@@ -7,12 +7,29 @@ export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [active, setActive] = useState<TimeEntry | null>(null);
+  // How many seconds had already elapsed as of `clientRef`, both measured
+  // purely from the server's own clock — never compared against this
+  // device's clock, so a skewed local clock can't throw the display off.
+  const [baselineSeconds, setBaselineSeconds] = useState(0);
+  const [clientRef, setClientRef] = useState(0);
   const [newProjectName, setNewProjectName] = useState("");
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [description, setDescription] = useState("");
-  const [now, setNow] = useState(Date.now());
+  const [, setTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
+
+  const applyActive = (data: ActiveEntry) => {
+    setActive(data.entry);
+    if (data.entry) {
+      const elapsedAtFetch =
+        (new Date(data.serverNow).getTime() - new Date(data.entry.startTime).getTime()) / 1000;
+      setBaselineSeconds(Math.max(0, elapsedAtFetch));
+      setClientRef(Date.now());
+    } else {
+      setBaselineSeconds(0);
+    }
+  };
 
   const loadAll = async () => {
     const [p, e, a] = await Promise.all([
@@ -22,7 +39,7 @@ export default function Dashboard() {
     ]);
     setProjects(p);
     setEntries(e);
-    setActive(a);
+    applyActive(a);
     if (!selectedProjectId && p.length > 0) setSelectedProjectId(p[0].id);
   };
 
@@ -32,7 +49,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!active) return;
-    const id = setInterval(() => setNow(Date.now()), 1000);
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, [active]);
 
@@ -51,8 +68,8 @@ export default function Dashboard() {
   const startTimer = async () => {
     if (!selectedProjectId) return;
     try {
-      const entry = await api.timeEntries.start(selectedProjectId, description);
-      setActive(entry);
+      const data = await api.timeEntries.start(selectedProjectId, description);
+      applyActive(data);
       setDescription("");
     } catch (err: any) {
       setError(err.message);
@@ -63,6 +80,7 @@ export default function Dashboard() {
     try {
       const entry = await api.timeEntries.stop();
       setActive(null);
+      setBaselineSeconds(0);
       setEntries((prev) => [entry, ...prev]);
     } catch (err: any) {
       setError(err.message);
@@ -76,7 +94,7 @@ export default function Dashboard() {
   };
 
   const elapsedSeconds = active
-    ? Math.floor((now - new Date(active.startTime).getTime()) / 1000)
+    ? Math.floor(baselineSeconds + (Date.now() - clientRef) / 1000)
     : 0;
 
   return (

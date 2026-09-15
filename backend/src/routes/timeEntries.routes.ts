@@ -16,13 +16,16 @@ router.get("/", async (req, res) => {
   res.json(entries);
 });
 
-// The currently running timer for the current user, if any.
+// The currently running timer for the current user, if any. Includes the
+// server's own clock reading so the client can measure elapsed time using
+// its own clock's ticking only, never comparing absolute timestamps across
+// two different machines' clocks (which may be skewed).
 router.get("/active", async (req, res) => {
   const active = await prisma.timeEntry.findFirst({
     where: { userId: req.auth!.userId, endTime: null },
     include: { project: true },
   });
-  res.json(active);
+  res.json({ entry: active, serverNow: new Date().toISOString() });
 });
 
 router.post("/start", async (req, res) => {
@@ -43,16 +46,17 @@ router.post("/start", async (req, res) => {
     return res.status(409).json({ error: "A timer is already running. Stop it first." });
   }
 
+  const startTime = new Date();
   const entry = await prisma.timeEntry.create({
     data: {
       userId: req.auth!.userId,
       projectId,
       description: description?.trim() || null,
-      startTime: new Date(),
+      startTime,
     },
     include: { project: true },
   });
-  res.status(201).json(entry);
+  res.status(201).json({ entry, serverNow: startTime.toISOString() });
 });
 
 router.post("/stop", async (req, res) => {
