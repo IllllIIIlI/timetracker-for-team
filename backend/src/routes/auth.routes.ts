@@ -26,7 +26,11 @@ router.get(
     res.cookie(COOKIE_NAME, token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      // Browsers silently drop Secure cookies set over plain HTTP, so this
+      // must follow the actual request protocol, not NODE_ENV — otherwise
+      // login "succeeds" but the session cookie never sticks on a
+      // production deployment that isn't behind HTTPS (e.g. a bare LAN box).
+      secure: req.protocol === "https",
       maxAge: COOKIE_MAX_AGE_MS,
     });
 
