@@ -245,17 +245,17 @@ export default function Dashboard() {
 
       <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <h2 className="font-semibold text-slate-800 mb-4">Recent entries</h2>
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-slate-100 max-h-[520px] overflow-y-auto">
           {entries.map((e) => (
             <li key={e.id} className="py-2 flex items-center justify-between text-sm">
-              <div>
+              <div className="min-w-0">
                 <span className="font-medium text-slate-700">{e.project.name}</span>
                 {e.description && <span className="text-slate-500"> — {e.description}</span>}
                 <p className="text-xs text-slate-400">
                   {new Date(e.startTime).toLocaleString()}
                 </p>
               </div>
-              <span className="font-mono text-slate-600">
+              <span className="font-mono text-slate-600 shrink-0 ml-3">
                 {e.durationSeconds != null ? formatDuration(e.durationSeconds) : "—"}
               </span>
             </li>
