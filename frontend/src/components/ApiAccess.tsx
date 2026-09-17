@@ -22,7 +22,9 @@ export default function ApiAccess() {
   if (!user) return null;
 
   return (
-    <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+    // curl/scripting isn't a phone use case — keep it out of the way on
+    // small screens and only show it from tablet width up.
+    <section className="hidden sm:block bg-white rounded-xl shadow-sm border border-slate-200 p-6">
       <button
         onClick={() => setOpen(!open)}
         className="font-semibold text-slate-800 flex items-center gap-2"

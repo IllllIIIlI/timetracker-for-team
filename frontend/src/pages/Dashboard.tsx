@@ -119,9 +119,9 @@ export default function Dashboard() {
         <h2 className="font-semibold text-slate-800 mb-4">Timer</h2>
 
         {active ? (
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm text-slate-500 truncate">
                 Tracking <span className="font-medium text-slate-700">{active.project.name}</span>
                 {active.description ? ` — ${active.description}` : ""}
               </p>
@@ -131,7 +131,7 @@ export default function Dashboard() {
             </div>
             <button
               onClick={stopTimer}
-              className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-medium"
+              className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-medium shrink-0"
             >
               Stop
             </button>
@@ -191,15 +191,15 @@ export default function Dashboard() {
         <ul className="divide-y divide-slate-100">
           {projects.map((p) => (
             <li key={p.id} className="py-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-y-1 gap-x-3">
+                <span className="flex items-center gap-2 min-w-0">
                   <span
-                    className="w-2.5 h-2.5 rounded-full"
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: p.color }}
                   />
-                  {p.name}
+                  <span className="truncate">{p.name}</span>
                 </span>
-                <span className="flex items-center gap-3">
+                <span className="flex items-center flex-wrap gap-3">
                   <span className="flex items-center gap-1 text-slate-400">
                     <button
                       onClick={() => adjustTime(p.id, -300)}

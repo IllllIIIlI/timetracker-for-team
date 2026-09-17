@@ -39,14 +39,14 @@ export default function Leaderboard() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h1 className="text-xl font-bold text-slate-800">Leaderboard</h1>
-        <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
+        <div className="flex gap-1 bg-slate-100 rounded-lg p-1 overflow-x-auto">
           {PERIODS.map((p) => (
             <button
               key={p.value}
               onClick={() => setPeriod(p.value)}
-              className={`px-3 py-1.5 text-sm rounded-md font-medium ${
+              className={`px-2.5 sm:px-3 py-1.5 text-sm rounded-md font-medium whitespace-nowrap ${
                 period === p.value ? "bg-white shadow-sm text-slate-800" : "text-slate-500"
               }`}
             >
@@ -91,12 +91,12 @@ export default function Leaderboard() {
                 row.user.id === user?.id ? "bg-indigo-50" : ""
               }`}
             >
-              <span className="w-6 text-center text-lg">{MEDALS[i] ?? i + 1}</span>
+              <span className="w-6 text-center text-lg shrink-0">{MEDALS[i] ?? i + 1}</span>
               {row.user.avatarUrl && (
-                <img src={row.user.avatarUrl} className="w-8 h-8 rounded-full" alt="" />
+                <img src={row.user.avatarUrl} className="w-8 h-8 rounded-full shrink-0" alt="" />
               )}
-              <span className="flex-1 font-medium text-slate-700">{row.user.name}</span>
-              <span className="font-mono text-slate-600">{formatDuration(row.totalSeconds)}</span>
+              <span className="flex-1 min-w-0 truncate font-medium text-slate-700">{row.user.name}</span>
+              <span className="font-mono text-slate-600 shrink-0">{formatDuration(row.totalSeconds)}</span>
             </div>
           ))}
         </div>

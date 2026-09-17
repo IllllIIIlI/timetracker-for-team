@@ -41,8 +41,8 @@ export default function ProjectMembers({ projectId }: { projectId: string }) {
     <div className="mt-2 pl-4 border-l-2 border-slate-100 space-y-2">
       <ul className="space-y-1">
         {data.members.map((m) => (
-          <li key={m.id} className="flex items-center justify-between text-xs text-slate-600">
-            <span>
+          <li key={m.id} className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs text-slate-600">
+            <span className="min-w-0 truncate">
               {m.avatarUrl && (
                 <img src={m.avatarUrl} className="inline w-4 h-4 rounded-full mr-1 align-middle" alt="" />
               )}
@@ -50,12 +50,12 @@ export default function ProjectMembers({ projectId }: { projectId: string }) {
               {m.role === "OWNER" && <span className="ml-1 text-indigo-500">owner</span>}
             </span>
             {m.role !== "OWNER" && m.id === user?.id && (
-              <button onClick={() => removeMember(m.id)} className="text-slate-400 hover:text-red-600">
+              <button onClick={() => removeMember(m.id)} className="shrink-0 text-slate-400 hover:text-red-600">
                 Leave
               </button>
             )}
             {m.role !== "OWNER" && m.id !== user?.id && (
-              <button onClick={() => removeMember(m.id)} className="text-slate-400 hover:text-red-600">
+              <button onClick={() => removeMember(m.id)} className="shrink-0 text-slate-400 hover:text-red-600">
                 Remove
               </button>
             )}
