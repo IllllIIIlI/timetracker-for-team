@@ -62,17 +62,47 @@ address as `VITE_API_URL` when building the frontend:
 VITE_API_URL=http://<host-ip-or-hostname>:4000 docker compose up --build
 ```
 
-This starts three containers:
+This starts four containers:
 
-| Service  | URL                      |
-|----------|--------------------------|
-| frontend | http://localhost:3000    |
-| backend  | http://localhost:4000    |
-| db       | localhost:5432 (Postgres)|
+| Service  | URL                        |
+|----------|----------------------------|
+| caddy    | https://localhost (self-signed) or your `DOMAIN` |
+| frontend | http://localhost:3000      |
+| backend  | http://localhost:4000      |
+| db       | localhost:5433 (Postgres)  |
 
 The backend automatically applies Prisma migrations on startup.
 
 Open **http://localhost:3000** and sign in with Google.
+
+## HTTPS with a real domain
+
+A `caddy` service fronts the whole app and handles TLS automatically. Copy `.env.example`
+to `.env` in the project root and set:
+
+```bash
+DOMAIN=yourdomain.com
+VITE_API_URL=https://yourdomain.com
+```
+
+Then, before starting:
+
+1. Point the domain's DNS **A record** at this machine's public IP. If your ISP gives you a
+   dynamic IP, move DNS to a provider with an API (e.g. Cloudflare, free) and run a DDNS
+   updater, or the certificate will start failing once the IP changes.
+2. Forward TCP ports **80** and **443** on your router to this machine (port 80 is required
+   for Caddy to complete the Let's Encrypt HTTP challenge, even though everything ends up
+   served over 443).
+3. Add `https://yourdomain.com/api/auth/google/callback` as an Authorized redirect URI in
+   Google Cloud Console.
+4. Set `FRONTEND_URL` and `GOOGLE_CALLBACK_URL` in `backend/.env` to `https://yourdomain.com`
+   and `https://yourdomain.com/api/auth/google/callback`.
+5. `docker compose up -d --build` — Caddy obtains and renews the certificate automatically;
+   no manual certbot/cron setup needed.
+
+Without a `DOMAIN` set, Caddy falls back to `localhost` with its own locally-trusted
+certificate (browsers will still flag it as self-signed, but traffic is encrypted) — fine
+for local development.
 
 ## Running without Docker (local dev)
 

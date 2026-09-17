@@ -11,6 +11,13 @@ import leaderboardRoutes from "./routes/leaderboard.routes";
 export function createApp() {
   const app = express();
 
+  // Behind Caddy (or any reverse proxy) the actual TLS connection terminates
+  // there, so Express only ever sees plain HTTP internally. Trusting the
+  // proxy makes req.protocol reflect the X-Forwarded-Proto header Caddy
+  // sets, which the login route relies on to mark the session cookie
+  // Secure only when the real client connection was HTTPS.
+  app.set("trust proxy", 1);
+
   app.use(
     cors({
       origin: process.env.FRONTEND_URL || "http://localhost:3000",

@@ -40,5 +40,29 @@ services:
     depends_on:
       - backend
 
+  # Terminates HTTPS and reverse-proxies both frontend and backend under one
+  # origin. Set DOMAIN to a real public domain (e.g. timet.space) to get an
+  # automatic Let's Encrypt certificate — this requires ports 80 and 443 to
+  # be reachable from the internet (router port forward) and the domain's
+  # DNS A record pointing at this machine's public IP. Left unset, it falls
+  # back to "localhost" with Caddy's own locally-trusted certificate.
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - frontend
+      - backend
+
 volumes:
   db-data:
+  caddy-data:
+  caddy-config:
