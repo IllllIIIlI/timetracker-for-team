@@ -62,6 +62,21 @@ services:
       - frontend
       - backend
 
+  # LAN DNS server: overrides timet.space to this machine's LAN IP for
+  # devices on the home network (avoids the NAT loopback problem most
+  # routers have reaching their own public IP from inside), and forwards
+  # everything else upstream like a normal resolver. Only takes effect for
+  # devices that use it as their DNS server — see deploy/README.md to point
+  # your router's DHCP DNS setting at this machine.
+  dns:
+    image: 4km3/dnsmasq:2.90-r3
+    restart: unless-stopped
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./dnsmasq.conf:/etc/dnsmasq.conf:ro
+
 volumes:
   db-data:
   caddy-data:

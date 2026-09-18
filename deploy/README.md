@@ -51,3 +51,28 @@ chmod +x ~/timetracker/deploy/cloudflare-ddns.sh
 # Then run it every 5 minutes via cron
 (crontab -l 2>/dev/null; echo "*/5 * * * * $HOME/timetracker/deploy/cloudflare-ddns.sh >> $HOME/ddns.log 2>&1") | crontab -
 ```
+
+# LAN-wide access without the NAT loopback problem
+
+Most home routers can't route a LAN device's request for its own public IP back to a
+server on the same LAN ("NAT loopback"/"hairpin NAT"). Without a fix, `timet.space` times
+out for anyone connected to the home Wi-Fi, even though it works fine from outside.
+
+The `dns` service in `docker-compose.yml` (dnsmasq) fixes this for **every** device on the
+network at once, no per-device setup: it answers `timet.space` with the Pi's LAN IP for
+local clients, and forwards every other lookup upstream normally.
+
+To make devices actually use it:
+
+1. Open the router admin panel → **Local Network** (or wherever DHCP settings live) →
+   look for a **DNS Server** / **Primary DNS** field.
+2. Set it to this machine's LAN IP (`192.168.1.154`), with a **secondary DNS** of
+   `1.1.1.1` as a fallback (so if the Pi is ever down, LAN devices still get normal
+   internet DNS — they just won't get the local override for `timet.space` until it's
+   back up, and can use the `nip.io` address in the meantime).
+3. Devices already connected need to reconnect to Wi-Fi (or reboot) to pick up the new
+   DNS server from DHCP.
+
+If the router has no DNS server override field, each device can instead be pointed at
+`192.168.1.154` directly in its own Wi-Fi network settings (iOS/Android/Windows all allow
+a manual DNS server per network) — more setup, but works without router support.
