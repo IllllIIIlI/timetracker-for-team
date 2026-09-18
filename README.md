@@ -89,7 +89,8 @@ Then, before starting:
 
 1. Point the domain's DNS **A record** at this machine's public IP. If your ISP gives you a
    dynamic IP, move DNS to a provider with an API (e.g. Cloudflare, free) and run a DDNS
-   updater, or the certificate will start failing once the IP changes.
+   updater, or the certificate will start failing once the IP changes — see
+   [`deploy/README.md`](deploy/README.md) for a ready-to-use Cloudflare DDNS setup.
 2. Forward TCP ports **80** and **443** on your router to this machine (port 80 is required
    for Caddy to complete the Let's Encrypt HTTP challenge, even though everything ends up
    served over 443).
