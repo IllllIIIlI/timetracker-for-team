@@ -7,6 +7,8 @@ import authRoutes from "./routes/auth.routes";
 import projectsRoutes from "./routes/projects.routes";
 import timeEntriesRoutes from "./routes/timeEntries.routes";
 import leaderboardRoutes from "./routes/leaderboard.routes";
+import serverRoutes from "./routes/server.routes";
+import { recordRequest } from "./lib/metrics";
 
 export function createApp() {
   const app = express();
@@ -27,6 +29,10 @@ export function createApp() {
   app.use(express.json());
   app.use(cookieParser());
   app.use(passport.initialize());
+  app.use((_req, _res, next) => {
+    recordRequest();
+    next();
+  });
 
   app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 
@@ -34,6 +40,7 @@ export function createApp() {
   app.use("/api/projects", projectsRoutes);
   app.use("/api/time-entries", timeEntriesRoutes);
   app.use("/api/leaderboard", leaderboardRoutes);
+  app.use("/api/server", serverRoutes);
 
   return app;
 }

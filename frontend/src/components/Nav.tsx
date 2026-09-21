@@ -36,6 +36,9 @@ export default function Nav() {
           <NavLink to="/leaderboard" className={linkClass}>
             Leaderboard
           </NavLink>
+          <NavLink to="/server" className={linkClass}>
+            Server
+          </NavLink>
         </div>
       </div>
     </nav>

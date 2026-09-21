@@ -48,6 +48,15 @@ export interface LeaderboardRow {
   totalSeconds: number;
 }
 
+export interface ServerStatus {
+  requestsTotal: number;
+  requestsPerMinute: number;
+  loadAvg: [number, number, number];
+  cpuCount: number;
+  uptimeSeconds: number;
+  memory: { totalMB: number; freeMB: number; usedMB: number };
+}
+
 class ApiError extends Error {
   constructor(message: string, public status: number) {
     super(message);
@@ -118,6 +127,10 @@ export const api = {
 
   leaderboard: (projectId: string, period: string) =>
     request<LeaderboardRow[]>(`/api/leaderboard?projectId=${projectId}&period=${period}`),
+
+  server: {
+    status: () => request<ServerStatus>("/api/server/status"),
+  },
 };
 
 export { ApiError };
