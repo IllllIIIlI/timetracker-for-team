@@ -8,7 +8,10 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
       <div className="bg-white shadow-md rounded-xl p-10 w-full max-w-sm text-center">
         <h1 className="text-2xl font-bold text-slate-800 mb-2">TimeTracker</h1>
-        <p className="text-slate-500 mb-8">Track time on your projects and climb the leaderboard.</p>
+        <p className="text-slate-500 mb-8">
+          A simple time tracker for teams — log hours on shared projects and climb the
+          leaderboard.
+        </p>
 
         {hadError && (
           <p className="mb-4 text-sm text-red-600">Login failed, please try again.</p>
