@@ -3,6 +3,7 @@ import { api, ActiveEntry, Project, TimeEntry } from "../api";
 import { formatDuration } from "../format";
 import ProjectMembers from "../components/ProjectMembers";
 import ApiAccess from "../components/ApiAccess";
+import DangerZone from "../components/DangerZone";
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -267,6 +268,7 @@ export default function Dashboard() {
       </section>
 
       <ApiAccess />
+      <DangerZone />
     </div>
   );
 }

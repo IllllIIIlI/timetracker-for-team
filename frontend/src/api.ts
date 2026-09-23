@@ -85,6 +85,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 export const api = {
   me: () => request<User>("/api/auth/me"),
   logout: () => request<void>("/api/auth/logout", { method: "POST" }),
+  deleteAccount: () => request<void>("/api/auth/me", { method: "DELETE" }),
   generateApiKey: () => request<{ apiKey: string }>("/api/auth/api-key", { method: "POST" }),
   revokeApiKey: () => request<void>("/api/auth/api-key", { method: "DELETE" }),
 

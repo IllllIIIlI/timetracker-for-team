@@ -77,4 +77,43 @@ router.delete("/api-key", requireAuth, async (req, res) => {
   res.status(204).end();
 });
 
+// Deletes the caller's account and everything that belongs only to them
+// (memberships, time entries, owned projects with no other members).
+// For a project they own that still has other members, ownership is handed
+// to the longest-standing other member first — deleting your own account
+// must never take a shared project (and everyone else's logged time on it)
+// down with it.
+router.delete("/me", requireAuth, async (req, res) => {
+  const userId = req.auth!.userId;
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  await prisma.$transaction(async (tx) => {
+    const ownedProjects = await tx.project.findMany({
+      where: { ownerId: userId },
+      include: { members: { orderBy: { joinedAt: "asc" } } },
+    });
+
+    for (const project of ownedProjects) {
+      const nextOwner = project.members.find((m) => m.userId !== userId);
+      if (!nextOwner) continue; // sole member — let it cascade-delete below
+
+      await tx.project.update({
+        where: { id: project.id },
+        data: { ownerId: nextOwner.userId },
+      });
+      await tx.projectMember.update({
+        where: { id: nextOwner.id },
+        data: { role: "OWNER" },
+      });
+    }
+
+    await tx.user.delete({ where: { id: userId } });
+  });
+
+  res.clearCookie(COOKIE_NAME);
+  res.status(204).end();
+});
+
 export default router;
